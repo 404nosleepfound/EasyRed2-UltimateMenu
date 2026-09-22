@@ -249,7 +249,7 @@ namespace EasyRed2Mod
             // Header titles
             GUI.Label(new Rect(220, 24, 600, 34), "EASY RED 2  <color=#C7A45C>ULTIMATE MENU</color>", _titleStyle);
             GUI.Label(new Rect(222, 58, 500, 22), "FIELD COMMAND / TACTICAL CONTROL", _subtitleStyle);
-            GUI.Label(new Rect(900, 27, 105, 28), "v1.4.5", _statusStyle);
+            GUI.Label(new Rect(900, 27, 105, 28), "v1.4.6", _statusStyle);
 
             GUI.Label(new Rect(24, 24, 150, 26), "ER2 FIELD HQ", _titleStyle);
             GUI.Label(new Rect(25, 56, 150, 20), "OPERATIONS BOARD", _subtitleStyle);

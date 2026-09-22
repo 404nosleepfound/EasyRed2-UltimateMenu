@@ -59,6 +59,7 @@ namespace EasyRed2Mod
         public static void Reset()
         {
             _isInitialized = false;
+            WeaponsLoaded = false; VehiclesLoaded = false; ItemsLoaded = false;
             _weaponNames.Clear(); _vehicleNames.Clear(); _itemNames.Clear();
             AmmoNames.Clear(); UniformNames.Clear(); OtherNames.Clear(); GrenadeNames.Clear();
             AttachmentNames.Clear(); UpgradableWeapons.Clear();
@@ -67,27 +68,34 @@ namespace EasyRed2Mod
 
         public static bool IsInitialized() => _isInitialized;
 
-        // Queries the game's internal database (ItemsDatabase), caches prefabs, and sorts them into subcategories
+        // Builds the spawner cache from objects that are already loaded by Unity.
+        //
+        // Older builds used ItemsDatabase.GetAllItemsOfType(...) four times here.
+        // Easy Red 2 2.0.9+ can contain prefabs with missing/changed scripts, and the
+        // bulk database scan has been reported to freeze the game and rapidly grow
+        // memory usage. A Resources scan avoids forcing the database to hydrate every
+        // item definition at once and skips scene clones/duplicates as we enumerate.
         public static void Initialize()
         {
             if (_isInitialized) return;
+
             int skippedModdedWeapons = 0;
             try
             {
                 Reset();
+                DebugMenuPlugin.ModLogInfo("[ER2-SPAWNER] Starting safe loaded-object scan...");
 
-                // --- 1. POPULATE WEAPONS ---
+                // --- 1. POPULATE WEAPONS FROM LOADED PREFABS ---
                 try
                 {
-                    var allWeapons = ItemsDatabase.GetAllItemsOfType<GenericGun>(PropData.PropType.weapons);
+                    var allWeapons = UnityEngine.Resources.FindObjectsOfTypeAll<GenericGun>();
                     if (allWeapons != null)
                     {
                         foreach (var w in allWeapons)
                         {
-                            if (w == null) continue;
-                            var io = w.GetComponent<ItemObject>();
+                            if (w == null || w.gameObject == null) continue;
 
-                            // Filter out Steam Workshop / user-modded weapons if disabled in settings
+                            var io = w.GetComponent<ItemObject>();
                             if (!IncludeModdedWeapons && IsModdedWeapon(w, io))
                             {
                                 skippedModdedWeapons++;
@@ -97,103 +105,125 @@ namespace EasyRed2Mod
                             string wName = (io != null && !string.IsNullOrEmpty(io.item_id)) ? io.item_id : w.name;
                             if (string.IsNullOrEmpty(wName) || wName.Contains("(Clone)")) continue;
 
-                            if (!_weaponPrefabs.ContainsKey(wName))
-                            {
-                                _weaponPrefabs.Add(wName, w.gameObject);
-                                _weaponNames.Add(wName);
+                            AddPrefab(_weaponPrefabs, _weaponNames, wName, w.gameObject);
 
-                                // Track weapons capable of accepting scopes/bipods/bayonets
+                            try
+                            {
                                 if (w.supportedAttachments != null && w.supportedAttachments.Length > 0)
-                                {
                                     UpgradableWeapons.Add(wName);
-                                }
                             }
+                            catch { }
                         }
                     }
+                    WeaponsLoaded = true;
                 }
-                catch (Exception e) { Debug.LogError("Init Weapons Error: " + e.Message); }
-
-                // --- 2. POPULATE VEHICLES ---
-                var allVehicles = ItemsDatabase.GetAllItemsOfType<Vehicle>(PropData.PropType.vehicles);
-                if (allVehicles != null)
+                catch (Exception e)
                 {
-                    foreach (var v in allVehicles)
+                    DebugMenuPlugin.ModLogError("[ER2-SPAWNER] Weapon scan error: " + e.Message);
+                }
+
+                // Yielding is not possible from this synchronous entry point, so keep
+                // each category isolated: one bad object should not abort the rest.
+
+                // --- 2. POPULATE VEHICLES FROM LOADED PREFABS ---
+                try
+                {
+                    var allVehicles = UnityEngine.Resources.FindObjectsOfTypeAll<Vehicle>();
+                    if (allVehicles != null)
                     {
-                        if (v == null || string.IsNullOrEmpty(v.name)) continue;
-                        if (!_vehiclePrefabs.ContainsKey(v.name))
+                        foreach (var v in allVehicles)
                         {
-                            _vehiclePrefabs.Add(v.name, v.gameObject);
-                            _vehicleNames.Add(v.name);
+                            if (v == null || v.gameObject == null || string.IsNullOrEmpty(v.name)) continue;
+                            if (v.name.Contains("(Clone)")) continue;
+                            AddPrefab(_vehiclePrefabs, _vehicleNames, v.name, v.gameObject);
                         }
                     }
+                    VehiclesLoaded = true;
+                }
+                catch (Exception e)
+                {
+                    DebugMenuPlugin.ModLogError("[ER2-SPAWNER] Vehicle scan error: " + e.Message);
                 }
 
-                // --- 3. POPULATE GENERAL ITEMS & CATEGORIZE BY ID KEYWORDS ---
-                var allItems = ItemsDatabase.GetAllItemsOfType<ItemObject>(PropData.PropType.items);
-                if (allItems != null)
+                // --- 3. POPULATE ITEMS, AMMO, UNIFORMS, GRENADES & ATTACHMENTS ---
+                try
                 {
-                    foreach (var item in allItems)
+                    var allItems = UnityEngine.Resources.FindObjectsOfTypeAll<ItemObject>();
+                    if (allItems != null)
                     {
-                        if (item == null || string.IsNullOrEmpty(item.item_id)) continue;
+                        foreach (var item in allItems)
+                        {
+                            if (item == null || item.gameObject == null || string.IsNullOrEmpty(item.item_id)) continue;
 
-                        string id = item.item_id;
-                        string low = id.ToLower();
+                            string id = item.item_id;
+                            if (id.Contains("(Clone)")) continue;
 
-                        if (!_itemPrefabs.ContainsKey(id)) _itemPrefabs.Add(id, item.gameObject);
-                        if (!_itemNames.Contains(id)) _itemNames.Add(id);
-
-                        // Explosives and thrown weapons
-                        if (low.Contains("grenade") || low.Contains("molotov") || low.Contains("dynamite") ||
-                            low.Contains("tnt") || low.Contains("mine") || low.Contains("hhl") || low.Contains("satchel"))
-                        {
-                            if (!GrenadeNames.Contains(id)) GrenadeNames.Add(id);
-                        }
-                        // Ammunition, magazines, and rocket charges
-                        else if (low.Contains("ammo") || low.Contains("rocket") || low.Contains("shell") ||
-                                 low.Contains("mag") || low.Contains("magazine") || low.Contains("clip") ||
-                                 low.Contains("bullet") || low.Contains("round") || low.Contains("7.62") ||
-                                 low.Contains("9mm") || low.Contains("8mm") || low.Contains("45acp") ||
-                                 low.Contains("30cal") || low.Contains("50cal"))
-                        {
-                            if (!AmmoNames.Contains(id)) AmmoNames.Add(id);
-                        }
-                        // Uniforms, helmets, vests, and wearable gear
-                        else if (low.Contains("uniform") || low.Contains("helmet") || low.Contains("vest") ||
-                                 low.Contains("cap") || low.Contains("beret") || low.Contains("coat") ||
-                                 low.Contains("parka") || low.Contains("zeltbahn") || low.Contains("turban") ||
-                                 low.Contains("beanie") || low.Contains("radio") || low.Contains("flamethrower") ||
-                                 low.Contains("gear") || low.Contains("crusher") || low.Contains("ushanka") ||
-                                 low.Contains("panzer") || low.Contains("smock") || low.Contains("hat") ||
-                                 low.Contains("gaiters") || low.Contains("trousers") || low.Contains("jacket") ||
-                                 low.Contains("bloused") || low.Contains("long") || low.Contains("camo") || low.Contains("hp") ||
-                                 low.Contains("inf") || low.Contains("luffwaffe") || low.Contains("tank") ||
-                                 low.Contains("green") || low.Contains("blue") || low.Contains("1") ||
-                                 low.Contains("2") || low.Contains("3") || low.Contains("plumblossom") ||
-                                 low.Contains("hun_bocskai_artillery") || low.Contains("hun_bocskai_artillery_sl") || low.Contains("hun_bocskai_artillery_visor") ||
-                                 low.Contains("hun_bocskai_artillery_visor_sl") || low.Contains("hun_bocskai_para") || low.Contains("hun_bocskai_para_sl") ||
-                                 low.Contains("hun_bocskai_para_visor") || low.Contains("hun_bocskai_para_visor_sl") || low.Contains("hun_jerkin") ||
-                                 low.Contains("hun_jerkin_para") || low.Contains("rom_tunic"))
-                        {
-                            if (!UniformNames.Contains(id)) UniformNames.Add(id);
-                        }
-                        // Miscellaneous items (food, medical supplies, tools)
-                        else
-                        {
-                            if (!OtherNames.Contains(id)) OtherNames.Add(id);
-                        }
-
-                        // Attachments found as standalone ItemObjects
-                        var att = item.GetComponent<Attachment>();
-                        if (att != null)
-                        {
-                            id = !string.IsNullOrEmpty(item.item_id) ? item.item_id : item.name;
-                            if (!AttachmentNames.Contains(id))
+                            // Weapons are handled by the weapon list, but their ItemObject
+                            // can still show up in this global resource scan.
+                            try
                             {
-                                AttachmentNames.Add(id);
-                                if (!_itemPrefabs.ContainsKey(id)) _itemPrefabs.Add(id, item.gameObject);
+                                if (item.GetComponent<GenericGun>() != null) continue;
                             }
+                            catch { }
+
+                            string low = id.ToLowerInvariant();
+
+                            if (!_itemPrefabs.ContainsKey(id)) _itemPrefabs.Add(id, item.gameObject);
+                            if (!_itemNames.Contains(id)) _itemNames.Add(id);
+
+                            // Explosives and thrown weapons
+                            if (low.Contains("grenade") || low.Contains("molotov") || low.Contains("dynamite") ||
+                                low.Contains("tnt") || low.Contains("mine") || low.Contains("hhl") || low.Contains("satchel"))
+                            {
+                                if (!GrenadeNames.Contains(id)) GrenadeNames.Add(id);
+                            }
+                            // Ammunition, magazines, and rocket charges
+                            else if (low.Contains("ammo") || low.Contains("rocket") || low.Contains("shell") ||
+                                     low.Contains("mag") || low.Contains("magazine") || low.Contains("clip") ||
+                                     low.Contains("bullet") || low.Contains("round") || low.Contains("7.62") ||
+                                     low.Contains("9mm") || low.Contains("8mm") || low.Contains("45acp") ||
+                                     low.Contains("30cal") || low.Contains("50cal"))
+                            {
+                                if (!AmmoNames.Contains(id)) AmmoNames.Add(id);
+                            }
+                            // Uniforms, helmets, vests, and wearable gear
+                            else if (low.Contains("uniform") || low.Contains("helmet") || low.Contains("vest") ||
+                                     low.Contains("cap") || low.Contains("beret") || low.Contains("coat") ||
+                                     low.Contains("parka") || low.Contains("zeltbahn") || low.Contains("turban") ||
+                                     low.Contains("beanie") || low.Contains("radio") || low.Contains("flamethrower") ||
+                                     low.Contains("gear") || low.Contains("crusher") || low.Contains("ushanka") ||
+                                     low.Contains("panzer") || low.Contains("smock") || low.Contains("hat") ||
+                                     low.Contains("gaiters") || low.Contains("trousers") || low.Contains("jacket") ||
+                                     low.Contains("bloused") || low.Contains("long") || low.Contains("camo") || low.Contains("hp") ||
+                                     low.Contains("inf") || low.Contains("luffwaffe") || low.Contains("tank") ||
+                                     low.Contains("green") || low.Contains("blue") || low.Contains("1") ||
+                                     low.Contains("2") || low.Contains("3") || low.Contains("plumblossom") ||
+                                     low.Contains("hun_bocskai_artillery") || low.Contains("hun_bocskai_artillery_sl") || low.Contains("hun_bocskai_artillery_visor") ||
+                                     low.Contains("hun_bocskai_artillery_visor_sl") || low.Contains("hun_bocskai_para") || low.Contains("hun_bocskai_para_sl") ||
+                                     low.Contains("hun_bocskai_para_visor") || low.Contains("hun_bocskai_para_visor_sl") || low.Contains("hun_jerkin") ||
+                                     low.Contains("hun_jerkin_para") || low.Contains("rom_tunic"))
+                            {
+                                if (!UniformNames.Contains(id)) UniformNames.Add(id);
+                            }
+                            else
+                            {
+                                if (!OtherNames.Contains(id)) OtherNames.Add(id);
+                            }
+
+                            try
+                            {
+                                var att = item.GetComponent<Attachment>();
+                                if (att != null && !AttachmentNames.Contains(id))
+                                    AttachmentNames.Add(id);
+                            }
+                            catch { }
                         }
                     }
+                    ItemsLoaded = true;
+                }
+                catch (Exception e)
+                {
+                    DebugMenuPlugin.ModLogError("[ER2-SPAWNER] Item scan error: " + e.Message);
                 }
 
                 // --- 4. EXTRACT ATTACHMENTS DIRECTLY FROM WEAPONS ---
@@ -201,40 +231,42 @@ namespace EasyRed2Mod
                 {
                     foreach (var gunPrefab in _weaponPrefabs.Values)
                     {
+                        if (gunPrefab == null) continue;
                         var gun = gunPrefab.GetComponent<GenericGun>();
                         if (gun == null || gun.supportedAttachments == null) continue;
 
                         foreach (var supported in gun.supportedAttachments)
                         {
+                            if (supported == null) continue;
                             string aid = supported.attachment_id;
                             if (!string.IsNullOrEmpty(aid) && !AttachmentNames.Contains(aid))
                                 AttachmentNames.Add(aid);
                         }
                     }
                 }
-                catch (Exception e) { Debug.LogError("Init Attachments Error: " + e.Message); }
-
-                // --- 5. POPULATE EXTRA AMMUNITION DEFINITIONS ---
-                var extraAmmo = ItemsDatabase.GetAllItemsOfType<ItemObject>(PropData.PropType.ammo);
-                if (extraAmmo != null)
+                catch (Exception e)
                 {
-                    foreach (var a in extraAmmo)
-                    {
-                        if (a == null || string.IsNullOrEmpty(a.item_id)) continue;
-                        if (!AmmoNames.Contains(a.item_id)) AmmoNames.Add(a.item_id);
-                        if (!_itemPrefabs.ContainsKey(a.item_id)) _itemPrefabs.Add(a.item_id, a.gameObject);
-                    }
+                    DebugMenuPlugin.ModLogError("[ER2-SPAWNER] Attachment scan error: " + e.Message);
                 }
 
-                // Sort all lists alphabetically for clean UI rendering
-                _weaponNames.Sort(); _vehicleNames.Sort(); _itemNames.Sort();
-                UniformNames.Sort(); GrenadeNames.Sort(); AmmoNames.Sort(); OtherNames.Sort(); AttachmentNames.Sort();
+                _weaponNames.Sort();
+                _vehicleNames.Sort();
+                _itemNames.Sort();
+                UniformNames.Sort();
+                GrenadeNames.Sort();
+                AmmoNames.Sort();
+                OtherNames.Sort();
+                AttachmentNames.Sort();
+
                 _isInitialized = true;
 
                 string mode = IncludeModdedWeapons ? "ALL MODS" : "VANILLA ONLY";
-                Debug.Log($"[ER2-SPAWNER] Load complete ({mode}). Weapons: {_weaponNames.Count}, skipped modded: {skippedModdedWeapons}, Vehs: {_vehicleNames.Count}, Items: {_itemNames.Count}");
+                DebugMenuPlugin.ModLogInfo($"[ER2-SPAWNER] Safe scan complete ({mode}). Weapons: {_weaponNames.Count}, skipped modded: {skippedModdedWeapons}, Vehs: {_vehicleNames.Count}, Items: {_itemNames.Count}, Ammo: {AmmoNames.Count}, Attachments: {AttachmentNames.Count}");
             }
-            catch (Exception e) { Debug.LogError("[ER2-SPAWNER] Init Error: " + e.Message); }
+            catch (Exception e)
+            {
+                DebugMenuPlugin.ModLogError("[ER2-SPAWNER] Initialization error: " + e);
+            }
         }
 
         // Helper to register prefabs while preventing duplicates and cloned instances

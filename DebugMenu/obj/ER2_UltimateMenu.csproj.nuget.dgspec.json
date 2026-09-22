@@ -1,0 +1,83 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\jaide\\Downloads\\EasyRed2-UltimateMenu-1.4.6-source\\EasyRed2-UltimateMenu-1.4.6\\DebugMenu\\ER2_UltimateMenu.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\jaide\\Downloads\\EasyRed2-UltimateMenu-1.4.6-source\\EasyRed2-UltimateMenu-1.4.6\\DebugMenu\\ER2_UltimateMenu.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\jaide\\Downloads\\EasyRed2-UltimateMenu-1.4.6-source\\EasyRed2-UltimateMenu-1.4.6\\DebugMenu\\ER2_UltimateMenu.csproj",
+        "projectName": "ER2_UltimateMenu",
+        "projectPath": "C:\\Users\\jaide\\Downloads\\EasyRed2-UltimateMenu-1.4.6-source\\EasyRed2-UltimateMenu-1.4.6\\DebugMenu\\ER2_UltimateMenu.csproj",
+        "packagesPath": "C:\\Users\\jaide\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\jaide\\Downloads\\EasyRed2-UltimateMenu-1.4.6-source\\EasyRed2-UltimateMenu-1.4.6\\DebugMenu\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\jaide\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "framework": "net6.0",
+            "targetAlias": "net6.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.400"
+      },
+      "frameworks": {
+        "net6.0": {
+          "framework": "net6.0",
+          "targetAlias": "net6.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

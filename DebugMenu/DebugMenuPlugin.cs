@@ -8,11 +8,26 @@ using BepInEx.Configuration;
 
 namespace EasyRed2Mod
 {
-    [BepInPlugin("pl.avene.easyred2.ultimate", "Easy Red 2 Ultimate Menu", "1.4.5")]
+    [BepInPlugin("pl.avene.easyred2.ultimate", "Easy Red 2 Ultimate Menu", "1.4.6")]
     public class DebugMenuPlugin : BepInEx.Unity.IL2CPP.BasePlugin
     {
         public static DebugMenuController Instance;
         public static DebugMenuPlugin PluginInstance;
+
+        public static void ModLogInfo(string message)
+        {
+            PluginInstance?.Log.LogInfo(message);
+        }
+
+        public static void ModLogWarning(string message)
+        {
+            PluginInstance?.Log.LogWarning(message);
+        }
+
+        public static void ModLogError(string message)
+        {
+            PluginInstance?.Log.LogError(message);
+        }
 
         // --- CONFIGURATION (Saved automatically to BepInEx/config) ---
         public static ConfigEntry<KeyCode> ConfigNoclipKey;
@@ -52,7 +67,7 @@ namespace EasyRed2Mod
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
 
                 // Hook Soldier.Update to reliably instantiate DebugMenuController in the game scene
-                harmony.Patch(AccessTools.Method(AccessTools.TypeByName("Soldier"), "Update"),
+                harmony.Patch(AccessTools.Method(typeof(Soldier), "Update"),
                     new HarmonyMethod(typeof(Patches), nameof(Patches.UpdatePostfix)));
 
                 // Force unlock and show cursor when the menu is open
@@ -65,9 +80,9 @@ namespace EasyRed2Mod
                 PatchNoRecoil(harmony);
 
                 // --- ITEM WEIGHT PATCHES ---
-                PatchWeightByName(harmony, "VirtualItem");
-                PatchWeightByName(harmony, "VirtualItemStackable");
-                PatchWeightByName(harmony, "VirtualMagazineItem");
+                PatchWeight(harmony, typeof(VirtualItem));
+                PatchWeight(harmony, typeof(VirtualItemStackable));
+                PatchWeight(harmony, typeof(VirtualMagazineItem));
             }
             catch (Exception e)
             {
@@ -76,11 +91,10 @@ namespace EasyRed2Mod
         }
 
         // Helper method to dynamically patch weight calculation on item classes
-        private void PatchWeightByName(Harmony harmony, string className)
+        private void PatchWeight(Harmony harmony, Type type)
         {
             try
             {
-                var type = AccessTools.TypeByName(className);
                 if (type == null) return;
 
                 var method = AccessTools.DeclaredMethod(type, "GetMass");
@@ -102,8 +116,18 @@ namespace EasyRed2Mod
                     harmony.Patch(soldierRecoil,
                         prefix: new HarmonyMethod(typeof(RecoilPatch), nameof(RecoilPatch.SoldierGiveRecoilPrefix)));
 
+                // Easy Red 2 2.1.0 added a trailing bool parameter to RecoilEffect.
+                // Prefer the current signature, but keep the old signature as a fallback
+                // so this maintenance build remains usable on slightly older installs.
                 var fpsRecoil = AccessTools.Method(typeof(FPSGunManager), "RecoilEffect",
-                    new[] { typeof(Soldier), typeof(float), typeof(FPSAnimationCollection) });
+                    new[] { typeof(Soldier), typeof(float), typeof(FPSAnimationCollection), typeof(bool) });
+
+                if (fpsRecoil == null)
+                {
+                    fpsRecoil = AccessTools.Method(typeof(FPSGunManager), "RecoilEffect",
+                        new[] { typeof(Soldier), typeof(float), typeof(FPSAnimationCollection) });
+                }
+
                 if (fpsRecoil != null)
                     harmony.Patch(fpsRecoil,
                         prefix: new HarmonyMethod(typeof(RecoilPatch), nameof(RecoilPatch.RecoilEffectPrefix)));

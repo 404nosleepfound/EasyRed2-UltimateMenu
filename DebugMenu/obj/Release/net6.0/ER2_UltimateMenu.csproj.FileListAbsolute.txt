@@ -1,0 +1,12 @@
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\bin\Release\net6.0\ER2_UltimateMenu.deps.json
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\bin\Release\net6.0\ER2_UltimateMenu.dll
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\bin\Release\net6.0\ER2_UltimateMenu.pdb
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.csproj.AssemblyReference.cache
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.AssemblyInfoInputs.cache
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.AssemblyInfo.cs
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.csproj.CoreCompileInputs.cache
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.dll
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\refint\ER2_UltimateMenu.dll
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ER2_UltimateMenu.pdb
+C:\Users\jaide\Downloads\EasyRed2-UltimateMenu-1.4.6-source\EasyRed2-UltimateMenu-1.4.6\DebugMenu\obj\Release\net6.0\ref\ER2_UltimateMenu.dll

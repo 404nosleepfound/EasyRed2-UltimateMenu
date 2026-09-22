@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "927rmvCYaqA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\jaide\\Downloads\\EasyRed2-UltimateMenu-1.4.6-source\\EasyRed2-UltimateMenu-1.4.6\\DebugMenu\\ER2_UltimateMenu.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jaide\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\jaide\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\jaide\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.36\\microsoft.aspnetcore.app.ref.6.0.36.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,82 +1,67 @@
 # Easy Red 2 - Ultimate Menu
 
-A community-maintained continuation of **Ultimate Menu for Easy Red 2**, originally created by [Avene0](https://github.com/Avene0).
+Community-maintained continuation of **Ultimate Menu for Easy Red 2**, originally created by **Avene0**.
 
-## Current Status
+## Status
 
-**Active Community Maintenance**
+**Active community maintenance** by **404nosleepfound**.
 
-Ultimate Menu was discontinued by the original developer and released as open source so the community could continue development.
+This continuation focuses on keeping the mod compatible with current Easy Red 2 releases, fixing crashes and broken hooks, improving stability, and reviewing useful community feature requests.
 
-This fork is now being actively maintained by **404nosleepfound**.
+## Version 1.4.6
 
-The goal is to:
+This is the first community-maintained compatibility release.
 
-* Maintain compatibility with current and future Easy Red 2 updates
-* Fix crashes and broken features
-* Improve stability
-* Review community bug reports
-* Consider useful community feature requests
-* Continue improving Ultimate Menu over time
+Highlights:
+- Reworked Spawner initialization to avoid the bulk database scans associated with freezes/crashes on newer Easy Red 2 builds.
+- Updated the FPS no-recoil hook for the current `FPSGunManager.RecoilEffect` method signature.
+- Reduced Harmony reflection warning spam by using direct game types where possible.
+- Reworked project references so the source no longer depends on the original developer's local Steam path.
+- Targets .NET 6 to match the current BepInEx runtime used by Easy Red 2.
+- Added a Windows build helper and repository `.gitignore`.
 
-## Current Priorities
+The safer Spawner scan defaults to vanilla content. Workshop/modded weapon support remains experimental and may be improved in a future release.
 
-### Compatibility & Stability
+## Requirements
 
-The first development priority is bringing Ultimate Menu fully up to date with current versions of Easy Red 2 and resolving known compatibility issues.
+- Easy Red 2
+- BepInEx 6 IL2CPP
 
-Known areas being investigated include:
+## Installation
 
-* Spawner crashes/freezing
-* Game-update compatibility
-* Broken or outdated game hooks
-* Stability and memory-related issues
+1. Install BepInEx 6 IL2CPP for Easy Red 2.
+2. Copy `ER2_UltimateMenu.dll` into `Easy Red 2/BepInEx/plugins/`.
+3. Start Easy Red 2.
+4. Press **Insert** in-game to open Ultimate Menu.
 
-## Bug Reports
+## Building from source
 
-If you encounter a problem, please open a GitHub Issue and include:
+The project reads game references from your Easy Red 2 installation instead of using a hard-coded developer path.
 
-* Easy Red 2 version
-* Ultimate Menu version
-* BepInEx version
-* What you were doing when the problem occurred
-* Steps to reproduce the problem
-* BepInEx log, if available
+On Windows, run:
 
-The more information provided, the easier the issue will be to reproduce and fix.
+```text
+BUILD_WINDOWS.bat
+```
 
-## Feature Requests
+When prompted, provide your Easy Red 2 installation directory. A successful build outputs `ER2_UltimateMenu.dll` under `build_output/`.
 
-Feature requests are welcome.
+## Bug reports
 
-Please open a GitHub Issue describing:
-
-* What you want added
-* How you expect it to work
-* Why it would be useful
-
-Not every request is guaranteed to be implemented, but requests will be reviewed for possible inclusion.
-
-## Built With
-
-* BepInEx 6 (IL2CPP)
-* HarmonyX
-* Unity IMGUI
-* C#
+When reporting a bug, include:
+- Easy Red 2 version
+- Ultimate Menu version
+- BepInEx version
+- Reproduction steps
+- `BepInEx/LogOutput.log` when possible
 
 ## Credits
 
-**Original creator:** Avene0
-**Current community maintainer:** 404nosleepfound
+- **Avene0** — original creator of Ultimate Menu
+- **404nosleepfound** — current community maintainer
 
-Huge thanks to Avene0 for creating Ultimate Menu and releasing the source code so development could continue.
-
-Original project: https://github.com/Avene0/EasyRed2-UltimateMenu
+Thank you to Avene0 for open-sourcing the project and explicitly allowing the community to continue maintaining it.
 
 ## License
 
-Ultimate Menu is distributed under the MIT License.
-
-Copyright © 2026 Avene0.
-
-See the `LICENSE` file for full license information.
+MIT. The original copyright and permission notice are retained in `LICENSE`.
